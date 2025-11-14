@@ -1,58 +1,67 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { Plus } from "lucide-react";
 import RecentActivity from "../components/recentActivity";
 import { Sidebar } from "../components/sidebar";
 import { StatCard } from "../components/card";
 import { Chart } from "../components/categoryCard";
+import { AddExpenseModal } from "../components/AddExpenseModal";
 import { useAuth } from "../context/AuthContext";
+import { useExpense } from "../context/ExpenseContext";
 
 export const Dashboard = () => {
-  const { user, isFetchingUserData } = useAuth();
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [expenses, setExpenses] = useState([]);
+  const { user, isFetchingUserData, isLoading } = useAuth();
+  const { expenses, getTotalSpent, getTotalIncome, isLoadingExpenses } =
+    useExpense();
+  const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      console.log("User data:", user);
+    console.log("Expenses updated:", expenses);
+  }, [expenses]);
 
-      // TODO: Fetch real expenses from API
-      // For now using mock data
-      fetchExpenses();
+  useEffect(() => {
+    // Check authentication after initial loading is complete
+    if (!isLoading && !isFetchingUserData) {
+      const token = localStorage.getItem("accessToken");
+      if (!token || !user) {
+        toast.error("Please login to continue", {
+          duration: 3000,
+          position: "top-center",
+        });
+        navigate("/login");
+        return;
+      }
     }
-  }, [user]);
-
-  const fetchExpenses = async () => {
-    // TODO: Replace with actual API call
-    // const response = await axios.get('/api/expenses', {
-    //   headers: { Authorization: `Bearer ${localStorage.getItem('accessToken')}` }
-    // });
-    // setExpenses(response.data.expenses);
-
-    // Mock expenses for now
-    const mockExpenses = [
-      { id: 1, category: "Food", amount: 150 },
-      { id: 2, category: "Transport", amount: 50 },
-      { id: 3, category: "Utilities", amount: 100 },
-    ];
-    setExpenses(mockExpenses);
-
-    // Calculate total spent
-    const total = mockExpenses.reduce(
-      (sum, expense) => sum + expense.amount,
-      0
-    );
-    setTotalSpent(total);
-  };
+  }, [isLoading, isFetchingUserData, user, navigate]);
 
   // Calculate metrics
-  const income = user?.income || 0;
-  const budgetRemaining = income - totalSpent;
+  const totalSpent = getTotalSpent();
+  const additionalIncome = getTotalIncome();
+  const initialIncome = user?.income || 0;
+  const totalIncome = initialIncome + additionalIncome;
+  const budgetRemaining = totalIncome - totalSpent;
   const spendPercentage =
-    income > 0 ? ((totalSpent / income) * 100).toFixed(1) : 0;
+    totalIncome > 0 ? ((totalSpent / totalIncome) * 100).toFixed(1) : 0;
   const remainingPercentage =
-    income > 0 ? ((budgetRemaining / income) * 100).toFixed(0) : 0;
+    totalIncome > 0
+      ? Math.max(0, Math.floor((budgetRemaining / totalIncome) * 100))
+      : 0;
 
-  // Show loading state
-  if (isFetchingUserData || !user) {
+  // Debug log
+  console.log("Dashboard Metrics:", {
+    totalSpent,
+    initialIncome,
+    additionalIncome,
+    totalIncome,
+    budgetRemaining,
+    spendPercentage,
+    remainingPercentage,
+  });
+
+  // Show loading state only during initial load
+  if (isLoading || isFetchingUserData) {
     return (
       <div className="min-h-screen w-full bg-black flex items-center justify-center">
         <div className="text-center">
@@ -63,26 +72,46 @@ export const Dashboard = () => {
     );
   }
 
+  // If not authenticated after loading, don't render (will redirect)
+  if (!user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen w-full bg-black flex">
       <Sidebar />
       <main className="flex-1 p-8">
-        <header className="mb-8">
-          <h1 className="text-3xl font-semibold text-white">
-            Welcome back, {user.username}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-400">
-            Here's your financial overview for this month
-          </p>
+        <header className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-semibold text-white">
+              Welcome back, {user.username}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-400">
+              Here's your financial overview for this month
+            </p>
+          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-white hover:bg-zinc-100 text-black font-medium rounded-lg transition shadow-lg"
+          >
+            <Plus size={20} />
+            Add Expense
+          </button>
         </header>
         <section className="space-y-6">
           {/* Budget Overview Cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <StatCard
-              title="Monthly Income"
-              value={income}
+              title="Total Income"
+              value={totalIncome}
               trend="neutral"
-              trendText={`${user.categories?.length || 0} budget categories`}
+              trendText={
+                additionalIncome > 0
+                  ? `₹${initialIncome.toLocaleString(
+                      "en-IN"
+                    )} + ₹${additionalIncome.toLocaleString("en-IN")} added`
+                  : `${user.categories?.length || 0} budget categories`
+              }
             />
             <StatCard
               title="Total Spent this Month"
@@ -121,11 +150,17 @@ export const Dashboard = () => {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Chart categories={user.categories} />
-            <RecentActivity />
+            <Chart categories={user.categories} expenses={expenses} />
+            <RecentActivity expenses={expenses} />
           </div>
         </section>
       </main>
+
+      {/* Add Expense Modal */}
+      <AddExpenseModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

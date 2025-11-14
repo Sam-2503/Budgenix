@@ -9,14 +9,14 @@ export function Chart({ categories = [], expenses = [] }) {
 
     // Group expenses by category and sum amounts
     const categoryTotals = {};
-    
+
     expenses.forEach((expense) => {
       // Only count expense type, not income
-      if (expense.type !== 'expense') return;
-      
+      if (expense.type !== "expense") return;
+
       const category = expense.category;
       const amount = parseFloat(expense.amount) || 0;
-      
+
       if (categoryTotals[category]) {
         categoryTotals[category] += amount;
       } else {
@@ -28,7 +28,7 @@ export function Chart({ categories = [], expenses = [] }) {
     const categorySpending = Object.entries(categoryTotals)
       .map(([name, value]) => ({
         name,
-        value
+        value,
       }))
       .sort((a, b) => b.value - a.value);
 
@@ -40,47 +40,63 @@ export function Chart({ categories = [], expenses = [] }) {
 
   // Modern color palette
   const colors = [
-    "#3b82f6", "#06b6d4", "#f59e0b", "#8b5cf6", 
-    "#ec4899", "#10b981", "#f43f5e", "#f97316"
+    "#3b82f6",
+    "#06b6d4",
+    "#f59e0b",
+    "#8b5cf6",
+    "#ec4899",
+    "#10b981",
+    "#f43f5e",
+    "#f97316",
   ];
+
+  // Format value for Indian Rupee
+  const formatINR = (val) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
 
   // Calculate donut segments
   const createDonutSegments = () => {
+    if (chartData.length === 0) return [];
+
     const size = 200;
     const center = size / 2;
     const radius = 70;
-    const thickness = 30;
 
-    let currentAngle = -90;
-    
+    let currentAngle = 0;
+
     return chartData.map((item, index) => {
       const percentage = (item.value / totalSpent) * 100;
       const angle = (percentage / 100) * 360;
-      
-      const startAngle = currentAngle * (Math.PI / 180);
-      const endAngle = (currentAngle + angle) * (Math.PI / 180);
-      
+
+      const startAngle = (currentAngle - 90) * (Math.PI / 180);
+      const endAngle = (currentAngle + angle - 90) * (Math.PI / 180);
+
       const x1 = center + radius * Math.cos(startAngle);
       const y1 = center + radius * Math.sin(startAngle);
       const x2 = center + radius * Math.cos(endAngle);
       const y2 = center + radius * Math.sin(endAngle);
-      
+
       const largeArc = angle > 180 ? 1 : 0;
-      
+
       const path = `
         M ${center} ${center}
         L ${x1} ${y1}
         A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}
         Z
       `;
-      
+
       currentAngle += angle;
-      
+
       return {
         path,
         color: colors[index % colors.length],
         percentage,
-        ...item
+        ...item,
       };
     });
   };
@@ -96,30 +112,32 @@ export function Chart({ categories = [], expenses = [] }) {
       {chartData.length > 0 ? (
         <div className="space-y-6">
           <div className="flex justify-center relative">
-            <svg width="200" height="200" className="transform -rotate-90">
+            <svg width="200" height="200" viewBox="0 0 200 200">
               {segments.map((segment, index) => (
-                <path
-                  key={index}
-                  d={segment.path}
-                  fill={segment.color}
-                  opacity={hoveredIndex === null || hoveredIndex === index ? 1 : 0.3}
-                  className="transition-all duration-300 cursor-pointer"
-                  onMouseEnter={() => setHoveredIndex(index)}
-                  onMouseLeave={() => setHoveredIndex(null)}
-                  style={{
-                    filter: hoveredIndex === index ? 'brightness(1.2)' : 'none',
-                    transform: hoveredIndex === index ? 'scale(1.02)' : 'scale(1)',
-                    transformOrigin: '100px 100px'
-                  }}
-                />
+                <g key={index}>
+                  <path
+                    d={segment.path}
+                    fill={segment.color}
+                    opacity={
+                      hoveredIndex === null || hoveredIndex === index ? 1 : 0.3
+                    }
+                    className="transition-all duration-300 cursor-pointer"
+                    onMouseEnter={() => setHoveredIndex(index)}
+                    onMouseLeave={() => setHoveredIndex(null)}
+                    style={{
+                      filter:
+                        hoveredIndex === index ? "brightness(1.2)" : "none",
+                    }}
+                  />
+                </g>
               ))}
               <circle cx="100" cy="100" r="55" fill="#18181b" />
             </svg>
-            
-            <div className="absolute inset-0 flex items-center justify-center flex-col">
+
+            <div className="absolute inset-0 flex items-center justify-center flex-col pointer-events-none">
               <p className="text-xs text-zinc-400">Total Spent</p>
               <p className="text-2xl font-bold text-white">
-                ${totalSpent.toLocaleString()}
+                {formatINR(totalSpent)}
               </p>
             </div>
           </div>
@@ -139,7 +157,8 @@ export function Chart({ categories = [], expenses = [] }) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white truncate">{segment.name}</p>
                   <p className="text-xs text-zinc-400">
-                    ${segment.value.toLocaleString()} ({segment.percentage.toFixed(1)}%)
+                    {formatINR(segment.value)} ({segment.percentage.toFixed(1)}
+                    %)
                   </p>
                 </div>
               </div>
@@ -149,8 +168,18 @@ export function Chart({ categories = [], expenses = [] }) {
       ) : (
         <div className="text-center py-12">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-            <svg className="w-8 h-8 text-zinc-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <svg
+              className="w-8 h-8 text-zinc-600"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
             </svg>
           </div>
           <p className="text-zinc-400 mb-2">No expenses yet</p>

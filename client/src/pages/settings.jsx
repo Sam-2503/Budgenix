@@ -1,12 +1,42 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const Settings = () => {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const handleLogout = () => {
     // Add logout logic here
 
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    // Clear authentication data
     console.log("Logging out...");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
+    // Call logout from auth context if available
+    if (logout) {
+      logout();
+    }
+
+    setShowLogoutConfirm(false);
+
+    // Redirect to welcome page after a short delay
+    setTimeout(() => {
+      navigate("/");
+    }, 300);
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   const handleDeleteAccount = () => {
@@ -21,8 +51,8 @@ const Settings = () => {
   };
 
   const handleReportBug = () => {
-    // Add report bug logic here
-    console.log("Opening bug report...");
+    // Open GitHub issues page in a new window
+    window.open("https://github.com/kaihere14/Budgenix/issues", "_blank");
   };
 
   const handleContact = () => {

@@ -9,18 +9,19 @@ export const createExpense = async (
 ): Promise<unknown> => {
   try {
     const userId = req.userId;
-    const { amount, category, date, description, type } =
+    const { amount, category, date, description, type ,title} =
       req.body as Partial<IExpense>;
     if (!userId || !amount || !category || !type) {
       return res.status(400).json({ message: "Missing required fields" });
     }
     const newExpense = new Expense({
-      userId,
-      amount,
-      category,
-      type,
-      date: date || new Date(),
-      description,
+        title,
+        userId,
+        amount,
+        category,
+        type,
+        date: date || new Date(),
+        description,
     });
     await newExpense.save();
     return res
@@ -47,6 +48,17 @@ export const deleteExpense = async (req: Request, res: Response) => {
     return res
       .status(200)
       .json({ message: "Expense deleted successfully", expense });
+  } catch (error) {
+    return res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const getExpenses = async (req: Request, res: Response) => {
+  try {
+    const userId = req.userId;
+    if (!userId) return res.status(400).json({ message: "Missing user id" });
+    const expenses = await Expense.find({ userId });
+    return res.status(200).json({ expenses });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error });
   }

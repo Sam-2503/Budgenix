@@ -46,7 +46,7 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col sticky top-0 h-screen">
       <div className="py-6 px-3 border-b border-zinc-800">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center">
