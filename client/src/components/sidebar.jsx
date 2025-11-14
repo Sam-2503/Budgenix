@@ -26,12 +26,6 @@ export function Sidebar() {
       icon: AnalyticsIcon,
       link: "/analytics",
     },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: SettingsIcon,
-      link: "/settings",
-    },
   ];
 
   // Helper function to check if current route matches menu item
@@ -106,6 +100,17 @@ export function Sidebar() {
             </div>
           </div>
         )}
+        <Link
+          to="/settings"
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition ${
+            isActiveRoute("/settings")
+              ? "bg-zinc-800 text-white border-white"
+              : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+          }`}
+        >
+          <SettingsIcon className="w-5 h-5" />
+          Settings
+        </Link>
         <button
           onClick={logoutHandler}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
