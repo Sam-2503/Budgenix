@@ -1,14 +1,99 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Sidebar } from "../components/sidebar";
+import { useExpense } from "../context/ExpenseContext";
+import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 export function Transactions() {
+  const { expenses, deleteExpense, isLoadingExpenses } = useExpense();
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedTimeRange, setSelectedTimeRange] = useState("30days");
   const [sortBy, setSortBy] = useState("date");
+  const [hoveredId, setHoveredId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
-  // Extended dummy transactions data
-  const allTransactions = [
+  const handleDelete = async (expenseId, expenseName) => {
+    if (deletingId) return;
+
+    setDeletingId(expenseId);
+    const result = await deleteExpense(expenseId);
+
+    if (result.success) {
+      toast.success(`Deleted ${expenseName}`, {
+        duration: 2000,
+        position: "top-center",
+      });
+    } else {
+      toast.error(result.error || "Failed to delete expense", {
+        duration: 3000,
+        position: "top-center",
+      });
+    }
+    setDeletingId(null);
+  };
+
+  // Category icon mapping
+  const getCategoryIcon = (category) => {
+    const icons = {
+      Food: "🍽️",
+      Utilities: "💡",
+      Entertainment: "🎬",
+      Transportation: "🚌",
+      Healthcare: "🏥",
+      Shopping: "🛍️",
+      Housing: "🏠",
+      Work: "💼",
+      Education: "📚",
+      Other: "📌",
+    };
+    return icons[category] || "📌";
+  };
+
+  // Category color mapping
+  const getCategoryColors = (category) => {
+    const colors = {
+      Food: { bg: "bg-teal-900/20", icon: "text-teal-400" },
+      Utilities: { bg: "bg-blue-900/20", icon: "text-blue-400" },
+      Entertainment: { bg: "bg-purple-900/20", icon: "text-purple-400" },
+      Transportation: { bg: "bg-cyan-900/20", icon: "text-cyan-400" },
+      Healthcare: { bg: "bg-red-900/20", icon: "text-red-400" },
+      Shopping: { bg: "bg-pink-900/20", icon: "text-pink-400" },
+      Housing: { bg: "bg-orange-900/20", icon: "text-orange-400" },
+      Work: { bg: "bg-green-900/20", icon: "text-green-400" },
+      Education: { bg: "bg-indigo-900/20", icon: "text-indigo-400" },
+      Other: { bg: "bg-zinc-800/20", icon: "text-zinc-400" },
+    };
+    return colors[category] || colors.Other;
+  };
+
+  // Transform expenses to transaction format
+  const allTransactions = expenses.map((expense) => {
+    const colors = getCategoryColors(expense.category);
+    const date = new Date(expense.date);
+    return {
+      id: expense._id,
+      name: expense.description || expense.category,
+      date: expense.date,
+      time: date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      amount: expense.type === "expense" ? -expense.amount : expense.amount,
+      type: expense.type,
+      category: expense.category?.toLowerCase() || "other",
+      icon: getCategoryIcon(expense.category),
+      bgColor: colors.bg,
+      iconColor: colors.icon,
+      description: expense.description || expense.category,
+      location: "N/A",
+      paymentMethod: "N/A",
+    };
+  });
+
+  // Extended dummy transactions data for fallback
+  const dummyTransactions = [
     {
       id: 1,
       name: "The Corner Cafe",
@@ -131,14 +216,14 @@ export function Transactions() {
     },
   ];
 
+  // Get unique categories from user data
+  const userCategories = user?.categories || [];
   const categories = [
     { value: "all", label: "All Categories" },
-    { value: "food", label: "Food & Dining" },
-    { value: "shopping", label: "Shopping" },
-    { value: "transport", label: "Transportation" },
-    { value: "work", label: "Work & Income" },
-    { value: "housing", label: "Housing" },
-    { value: "entertainment", label: "Entertainment" },
+    ...userCategories.map((cat) => ({
+      value: cat.toLowerCase(),
+      label: cat,
+    })),
   ];
 
   const timeRanges = [
@@ -196,10 +281,8 @@ export function Transactions() {
     });
   };
 
-  // Calculate totals
-  const totalIncome = filteredTransactions
-    .filter((t) => t.amount > 0)
-    .reduce((sum, t) => sum + t.amount, 0);
+  // Calculate totals - use user's income from context
+  const totalIncome = user?.income || 0;
 
   const totalExpenses = filteredTransactions
     .filter((t) => t.amount < 0)
@@ -334,65 +417,127 @@ export function Transactions() {
             </h2>
           </div>
 
-          <div className="divide-y divide-zinc-800">
-            {sortedTransactions.length > 0 ? (
-              sortedTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="p-6 hover:bg-zinc-800/50 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      {/* Icon */}
-                      <div
-                        className={`w-12 h-12 rounded-lg ${transaction.bgColor} flex items-center justify-center`}
-                      >
-                        <span className={`text-xl ${transaction.iconColor}`}>
-                          {transaction.icon}
-                        </span>
-                      </div>
-
-                      {/* Transaction Details */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-1">
-                          <h3 className="font-medium text-gray-200 text-base">
-                            {transaction.name}
-                          </h3>
-                          <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded-full capitalize">
-                            {transaction.category}
+          {isLoadingExpenses ? (
+            <div className="p-12 text-center">
+              <div className="w-16 h-16 border-4 border-zinc-800 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-zinc-400">Loading transactions...</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-zinc-800">
+              {sortedTransactions.length > 0 ? (
+                sortedTransactions.map((transaction) => (
+                  <div
+                    key={transaction.id}
+                    className="p-6 hover:bg-zinc-800/50 transition-colors group relative"
+                    onMouseEnter={() => setHoveredId(transaction.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        {/* Icon */}
+                        <div
+                          className={`w-12 h-12 rounded-lg ${transaction.bgColor} flex items-center justify-center`}
+                        >
+                          <span className={`text-xl ${transaction.iconColor}`}>
+                            {transaction.icon}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-400 mb-1">
-                          {transaction.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          <span>
-                            {formatDate(transaction.date)} at {transaction.time}
-                          </span>
-                          <span>{transaction.location}</span>
-                          <span>{transaction.paymentMethod}</span>
+
+                        {/* Transaction Details */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="font-medium text-gray-200 text-base">
+                              {transaction.name}
+                            </h3>
+                            <span className="text-xs px-2 py-1 bg-gray-700 text-gray-300 rounded-full capitalize">
+                              {transaction.category}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-400 mb-1">
+                            {transaction.description}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-gray-500">
+                            <span>
+                              {formatDate(transaction.date)} at{" "}
+                              {transaction.time}
+                            </span>
+                            <span>{transaction.location}</span>
+                            <span>{transaction.paymentMethod}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Amount */}
-                    <div
-                      className={`font-semibold text-lg ${getAmountColor(
-                        transaction.amount
-                      )}`}
-                    >
-                      {formatAmount(transaction.amount)}
+                      {/* Amount and Delete Button */}
+                      <div className="flex items-center gap-4">
+                        <div
+                          className={`font-semibold text-lg ${getAmountColor(
+                            transaction.amount
+                          )}`}
+                        >
+                          {formatAmount(transaction.amount)}
+                        </div>
+
+                        {/* Delete Button (shown on hover) */}
+                        {hoveredId === transaction.id && (
+                          <button
+                            onClick={() =>
+                              handleDelete(transaction.id, transaction.name)
+                            }
+                            disabled={deletingId === transaction.id}
+                            className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Delete expense"
+                          >
+                            {deletingId === transaction.id ? (
+                              <svg
+                                className="w-5 h-5 text-red-400 animate-spin"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  className="opacity-25"
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                ></circle>
+                                <path
+                                  className="opacity-75"
+                                  fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                            ) : (
+                              <svg
+                                className="w-5 h-5 text-red-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="p-12 text-center text-gray-400">
+                  <p className="text-lg mb-2">No transactions found</p>
+                  <p className="text-sm">
+                    Try adjusting your search or filters
+                  </p>
                 </div>
-              ))
-            ) : (
-              <div className="p-12 text-center text-gray-400">
-                <p className="text-lg mb-2">No transactions found</p>
-                <p className="text-sm">Try adjusting your search or filters</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
     </div>

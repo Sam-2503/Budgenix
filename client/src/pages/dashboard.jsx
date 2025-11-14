@@ -30,6 +30,7 @@ export const Dashboard = () => {
         return;
       }
     }
+  }, [isLoading, isFetchingUserData, user, navigate]);
 
   const fetchExpenses = async () => {
     // TODO: Replace with actual API call
@@ -154,4 +155,4 @@ export const Dashboard = () => {
       </main>
     </div>
   );
-};
+}

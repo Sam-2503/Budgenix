@@ -1,65 +1,97 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { useExpense } from "../context/ExpenseContext";
+import toast from "react-hot-toast";
 
-const RecentActivity = () => {
-  // Dummy data matching the design from the attachment
-  const transactions = [
-    {
-      id: 1,
-      name: "The Corner Cafe",
-      date: "Oct 20, 2023",
-      amount: 540.0,
-      type: "income",
-      category: "food",
-      icon: "🍽️",
-      bgColor: "bg-teal-900/20",
-      iconColor: "text-teal-400",
-    },
-    {
-      id: 2,
-      name: "Urban Outfitters",
-      date: "Oct 20, 2023",
-      amount: -2850.0,
-      type: "expense",
-      category: "shopping",
-      icon: "🛍️",
-      bgColor: "bg-purple-900/20",
-      iconColor: "text-purple-400",
-    },
-    {
-      id: 3,
-      name: "Metro Transit",
-      date: "Oct 20, 2023",
-      amount: -120.0,
-      type: "expense",
-      category: "transport",
-      icon: "🚌",
-      bgColor: "bg-blue-900/20",
-      iconColor: "text-blue-400",
-    },
-    {
-      id: 4,
-      name: "Freelance Payment",
-      date: "Oct 24, 2023",
-      amount: 10000.0,
-      type: "income",
-      category: "work",
-      icon: "💼",
-      bgColor: "bg-green-900/20",
-      iconColor: "text-green-400",
-    },
-    {
-      id: 5,
-      name: "Rent Payment",
-      date: "Oct 23, 2023",
-      amount: -8000.0,
-      type: "expense",
-      category: "housing",
-      icon: "🏠",
-      bgColor: "bg-orange-900/20",
-      iconColor: "text-orange-400",
-    },
-  ];
+const RecentActivity = ({ expenses = [] }) => {
+  const { deleteExpense } = useExpense();
+  const [hoveredId, setHoveredId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const handleDelete = async (expenseId, expenseName) => {
+    if (deletingId) return;
+
+    setDeletingId(expenseId);
+    const result = await deleteExpense(expenseId);
+
+    if (result.success) {
+      toast.success(`Deleted ${expenseName}`, {
+        duration: 2000,
+        position: "top-center",
+      });
+    } else {
+      toast.error(result.error || "Failed to delete expense", {
+        duration: 3000,
+        position: "top-center",
+      });
+    }
+    setDeletingId(null);
+  };
+
+  // Category icon mapping
+  const getCategoryIcon = (category) => {
+    const icons = {
+      Food: "🍽️",
+      Utilities: "💡",
+      Entertainment: "🎬",
+      Transportation: "🚌",
+      Healthcare: "🏥",
+      Shopping: "🛍️",
+      Housing: "🏠",
+      Work: "💼",
+      Education: "📚",
+      Other: "📌",
+    };
+    return icons[category] || "📌";
+  };
+
+  // Category color mapping
+  const getCategoryColors = (category) => {
+    const colors = {
+      Food: { bg: "bg-teal-900/20", icon: "text-teal-400" },
+      Utilities: { bg: "bg-blue-900/20", icon: "text-blue-400" },
+      Entertainment: { bg: "bg-purple-900/20", icon: "text-purple-400" },
+      Transportation: { bg: "bg-cyan-900/20", icon: "text-cyan-400" },
+      Healthcare: { bg: "bg-red-900/20", icon: "text-red-400" },
+      Shopping: { bg: "bg-pink-900/20", icon: "text-pink-400" },
+      Housing: { bg: "bg-orange-900/20", icon: "text-orange-400" },
+      Work: { bg: "bg-green-900/20", icon: "text-green-400" },
+      Education: { bg: "bg-indigo-900/20", icon: "text-indigo-400" },
+      Other: { bg: "bg-zinc-800/20", icon: "text-zinc-400" },
+    };
+    return colors[category] || colors.Other;
+  };
+
+  // Format date
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  // Sort expenses by date (most recent first) and take top 5
+  const recentExpenses = [...expenses]
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 5);
+
+  // Transform expenses to transaction format
+  const transactions = recentExpenses.map((expense) => {
+    const colors = getCategoryColors(expense.category);
+    return {
+      id: expense._id,
+      name: expense.description || expense.category,
+      date: formatDate(expense.date),
+      amount: expense.type === "expense" ? -expense.amount : expense.amount,
+      type: expense.type,
+      category: expense.category,
+      icon: getCategoryIcon(expense.category),
+      bgColor: colors.bg,
+      iconColor: colors.icon,
+    };
+  });
 
   const formatAmount = (amount) => {
     const formatted = new Intl.NumberFormat("en-IN", {
