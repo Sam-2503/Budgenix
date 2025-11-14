@@ -2,7 +2,7 @@ import { useState } from "react";
 import RecentActivity from "../components/recentActivity";
 import { Sidebar } from "../components/sidebar";
 import { StatCard } from "../components/card";
-
+import { Chart } from "../components/categoryCard";
 export function Dashboard() {
   return (
     <div className="min-h-screen w-full bg-black flex">
@@ -33,14 +33,8 @@ export function Dashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Chart />
             <RecentActivity />
-            {/* Future: Add spending category chart or other components here */}
-            <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Spending Overview
-              </h3>
-              <p className="text-gray-400">Chart placeholder</p>
-            </div>
           </div>
         </section>
       </main>
