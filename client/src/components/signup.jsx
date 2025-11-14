@@ -154,6 +154,7 @@ export default function MultiStepSignup() {
       setError("");
     }
   };
+  
 
   const handleBack = () => {
     setStep(step - 1);
