@@ -9,6 +9,7 @@ import { Chart } from "../components/categoryCard";
 import { AddExpenseModal } from "../components/AddExpenseModal";
 import { useAuth } from "../context/AuthContext";
 import { useExpense } from "../context/ExpenseContext";
+import VoiceAssistant from "../components/voicechat";
 
 export const Dashboard = () => {
   const { user, isFetchingUserData, isLoading } = useAuth();
@@ -161,6 +162,7 @@ export const Dashboard = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
       />
+      <VoiceAssistant />
     </div>
   );
 };
