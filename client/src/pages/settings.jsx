@@ -111,9 +111,11 @@ const Settings = () => {
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
             <div className="flex items-center space-x-6">
               {/* Profile Picture */}
-              <div className="w-20 h-20 rounded-full border-2 border-zinc-700">
-                <span className="text-white text-sm font-medium">
-                  {getInitial(user.username)}
+              <div className="w-20 h-20 rounded-full flex items-center justify-center border-2 border-zinc-700">
+                <span className="text-white text-xl font-semibold">
+                  {user?.username
+                    ? getInitial(user.username)
+                    : user?.email?.charAt(0).toUpperCase() || "NA"}
                 </span>
               </div>
 
