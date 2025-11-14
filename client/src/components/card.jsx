@@ -47,13 +47,22 @@ export function StatCard({ title, value, trend, trendText }) {
     return "text-zinc-400";
   };
 
+  // Format value for Indian Rupee
+  const formatValue = (val) => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(val);
+  };
+
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm font-medium text-zinc-400">{title}</p>
           <p className="mt-2 text-3xl font-semibold text-white">
-            ${value.toLocaleString()}
+            {formatValue(value)}
           </p>
           <div className="mt-3 flex items-center gap-1.5">
             {!isNeutral && (
