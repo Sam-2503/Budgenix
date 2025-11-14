@@ -1,10 +1,39 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/sidebar";
+import { useAuth } from "../context/AuthContext";
 
 const Settings = () => {
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    // Add logout logic here
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    // Clear authentication data
     console.log("Logging out...");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
+    // Call logout from auth context if available
+    if (logout) {
+      logout();
+    }
+
+    setShowLogoutConfirm(false);
+
+    // Redirect to welcome page after a short delay
+    setTimeout(() => {
+      navigate("/");
+    }, 300);
+  };
+
+  const cancelLogout = () => {
+    setShowLogoutConfirm(false);
   };
 
   const handleDeleteAccount = () => {
@@ -19,8 +48,8 @@ const Settings = () => {
   };
 
   const handleReportBug = () => {
-    // Add report bug logic here
-    console.log("Opening bug report...");
+    // Open GitHub issues page in a new window
+    window.open("https://github.com/kaihere14/Budgenix/issues", "_blank");
   };
 
   const handleContact = () => {
@@ -127,6 +156,33 @@ const Settings = () => {
           </div>
         </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-zinc-900 border border-zinc-700 rounded-lg p-6 max-w-sm w-full mx-4">
+            <h2 className="text-xl font-semibold text-white mb-2">Log Out</h2>
+            <p className="text-zinc-400 mb-6">
+              Are you sure you want to log out? You'll need to log in again to
+              access your account.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={cancelLogout}
+                className="px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmLogout}
+                className="px-4 py-2 rounded-lg bg-red-900 border border-red-800 hover:bg-red-800 text-white font-medium transition-colors"
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
