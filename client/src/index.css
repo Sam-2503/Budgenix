@@ -24,12 +24,12 @@ a:hover {
   color: #535bf2;
 }
 
-body {
+ body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  /* Remove flex centering so layout containers (Sidebar + main) can span full width */
+  display: block;
 }
 
 h1 {

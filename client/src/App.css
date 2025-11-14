@@ -1,8 +1,8 @@
 #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%;
+  margin: 0; /* Remove auto-centering */
+  padding: 0; /* Let pages control their own padding */
+  text-align: left; /* Dashboard content should be left-aligned */
 }
 
 .logo {
@@ -33,8 +33,9 @@
   }
 }
 
+/* Legacy scaffold styles below kept only if still referenced; can be deleted later */
 .card {
-  padding: 2em;
+  padding: 0;
 }
 
 .read-the-docs {
