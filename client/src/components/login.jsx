@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-export default function Login({ onSubmit, onForgot }) {
+import { useAuth } from "../context/AuthContext";
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
+  const { login, isUserLoggedIn, setIsUserLoggedIn, fetchUserData, error } =
+    useAuth();
+
+  useEffect(() => {
+    if (isUserLoggedIn) {
+      window.location.href = "/dashboard";
+    } else {
+      fetchUserData();
+    }
+  }, [isUserLoggedIn, setIsUserLoggedIn]);
 
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit?.({ email, password });
+    login({ email, password });
   }
 
   return (
@@ -20,6 +31,12 @@ export default function Login({ onSubmit, onForgot }) {
               Enter your credentials to continue
             </p>
           </div>
+
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
           <div className="space-y-5" onSubmit={handleSubmit}>
             <div>
@@ -36,6 +53,7 @@ export default function Login({ onSubmit, onForgot }) {
                   placeholder="you@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
                   required
                   autoComplete="email"
                 />
@@ -56,12 +74,13 @@ export default function Login({ onSubmit, onForgot }) {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleSubmit(e)}
                   required
                   autoComplete="current-password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-medium text-zinc-400 hover:text-white transition"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-medium text-zinc-400 hover:text-white transition cursor-pointer"
                   onClick={() => setShow((s) => !s)}
                   aria-label={show ? "Hide password" : "Show password"}
                 >
@@ -73,7 +92,7 @@ export default function Login({ onSubmit, onForgot }) {
             <div className="flex items-center justify-end">
               <button
                 type="button"
-                className="text-sm text-zinc-400 hover:text-white transition"
+                className="text-sm text-zinc-400 hover:text-white transition cursor-pointer"
                 onClick={() => onForgot?.(email)}
               >
                 Forgot password?
@@ -83,7 +102,7 @@ export default function Login({ onSubmit, onForgot }) {
             <button
               type="button"
               onClick={handleSubmit}
-              className="w-full bg-white hover:bg-zinc-100 text-black font-medium py-2.5 px-4 rounded-md transition text-sm"
+              className="w-full bg-white hover:bg-zinc-100 text-black font-medium py-2.5 px-4 rounded-md transition text-sm cursor-pointer"
             >
               Sign in
             </button>
@@ -92,7 +111,10 @@ export default function Login({ onSubmit, onForgot }) {
           <div className="mt-6 pt-6 border-t border-zinc-800 text-center">
             <p className="text-sm text-zinc-400">
               Don't have an account?{" "}
-              <Link to="/signup" className="text-white hover:underline">
+              <Link
+                to="/signup"
+                className="text-white hover:underline cursor-pointer"
+              >
                 Sign up
               </Link>
             </p>

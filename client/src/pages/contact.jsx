@@ -6,7 +6,7 @@ export default function Contact() {
       id: 1,
       name: "Ankit Prajapati",
       role: "Front-End Developer & Team Lead",
-      bio: "Passionate about creating seamless user experiences and scalable backend solutions.",
+      bio: "Passionate about creating seamless user experiences and scalable backend solutions. Actively growing as a full-stack developer and improving through hands-on projects and real-world practice.",
       image:
         "https://res.cloudinary.com/dsplnfii2/image/upload/v1763131532/ankit_p9gr0c.jpg",
       github: "https://github.com/creator-9",
@@ -16,9 +16,9 @@ export default function Contact() {
       id: 2,
       name: "Arman Thakur",
       role: "Full Stack Developer",
-      bio: "Specializes in React development and creating intuitive user interfaces.",
+      bio: "Full-stack MERN developer with strong experience in TypeScript, React, Express, MongoDB, and modern authentication systems. I enjoy building real-world projects—from dashboards to AI-powered tools—and deploying them with production-ready architecture. Focused on writing clean code, improving UX, and learning advanced backend patterns as I grow.",
       image:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b47c?w=400&h=400&fit=crop&crop=face",
+        "https://res.cloudinary.com/dw87upoot/image/upload/v1763132275/IMG_5364_dgsiom.jpg",
       github: "https://github.com/kaihere14",
       linkedin: "https://www.linkedin.com/in/arman-thakur-303b47367/",
     },
@@ -26,17 +26,17 @@ export default function Contact() {
       id: 3,
       name: "Kamna Jolhe",
       role: "UI/UX Designer",
-      bio: "Expert in Node.js, MongoDB, and building robust API architectures.",
+      bio: "Actively building skills in Node.js and MongoDB by creating small APIs and understanding how backend systems operate. Enjoys experimenting, learning new patterns, and improving with each project.",
       image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop&crop=face",
-      github: "https://github.com/michaelrodriguez",
+        "https://res.cloudinary.com/dw87upoot/image/upload/v1763133182/Screenshot_2025-11-14_at_8.42.46_PM_g6m9b2.png",
+      github: "https://github.com/KamnaJ5",
       linkedin: "https://www.linkedin.com/in/kamnajolhe/",
     },
     {
       id: 4,
       name: "Samprad Das",
       role: "Front-End Developer",
-      bio: "Ensures product quality and manages development workflows and testing.",
+      bio: "Supports the development team by performing basic testing, tracking issues, and helping streamline workflows to ensure smooth progress and product consistency.",
       image:
         "https://res.cloudinary.com/dsplnfii2/image/upload/v1756542200/Samprad_cirzmq.jpg",
       github: "https://github.com/Sam-2503",

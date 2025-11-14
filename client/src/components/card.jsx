@@ -37,6 +37,15 @@ function ArrowDownIcon({ className }) {
 
 export function StatCard({ title, value, trend, trendText }) {
   const isPositive = trend === "up";
+  const isNegative = trend === "down";
+  const isNeutral = trend === "neutral";
+
+  // Determine color class based on trend
+  const getColorClass = () => {
+    if (isPositive) return "text-green-500";
+    if (isNegative) return "text-red-500";
+    return "text-zinc-400";
+  };
 
   return (
     <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
@@ -47,26 +56,16 @@ export function StatCard({ title, value, trend, trendText }) {
             ${value.toLocaleString()}
           </p>
           <div className="mt-3 flex items-center gap-1.5">
-            {isPositive ? (
-              <ArrowUpIcon
-                className={
-                  "w-4 h-4 " + (isPositive ? "text-green-400" : "text-red-400")
-                }
-              />
-            ) : (
-              <ArrowDownIcon
-                className={
-                  "w-4 h-4 " + (isPositive ? "text-green-400" : "text-red-400")
-                }
-              />
+            {!isNeutral && (
+              <>
+                {isPositive ? (
+                  <ArrowUpIcon className={`w-4 h-4 ${getColorClass()}`} />
+                ) : (
+                  <ArrowDownIcon className={`w-4 h-4 ${getColorClass()}`} />
+                )}
+              </>
             )}
-            <span
-              className={
-                "text-sm " + (isPositive ? "text-green-400" : "text-red-400")
-              }
-            >
-              {trendText}
-            </span>
+            <span className={`text-sm ${getColorClass()}`}>{trendText}</span>
           </div>
         </div>
       </div>

@@ -1,37 +1,66 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-export default function Signup({ onSubmit }) {
+import {
+  User,
+  Lock,
+  DollarSign,
+  CheckCircle,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  X,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+
+
+export default function MultiStepSignup() {
+  const [step, setStep] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
+  const{signup}= useAuth();
+
+  // Form data
   const [formData, setFormData] = useState({
-    fullName: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
+    income: "",
+    categories: [
+      "Food",
+      "Utilities",
+      "Entertainment",
+      "Transportation",
+      "Healthcare",
+    ],
   });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
   const [errors, setErrors] = useState({});
 
-  function handleInputChange(field, value) {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-    }
-  }
-
-  function validateForm() {
+  // Validation functions
+  const validateStep1 = () => {
     const newErrors = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Full name is required";
+    if (!formData.username.trim()) {
+      newErrors.username = "Username is required";
+    } else if (formData.username.length < 3) {
+      newErrors.username = "Username must be at least 3 characters";
     }
 
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email";
     }
 
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const newErrors = {};
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length < 8) {
@@ -46,229 +75,542 @@ export default function Signup({ onSubmit }) {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }
+  };
 
-  function handleSubmit(e) {
-    e.preventDefault();
-    if (validateForm()) {
-      onSubmit?.({
-        fullName: formData.fullName,
-        email: formData.email,
-        password: formData.password,
-      });
+  const validateStep3 = () => {
+    const newErrors = {};
+    if (!formData.income) {
+      newErrors.income = "Income is required";
+    } else if (parseFloat(formData.income) <= 0) {
+      newErrors.income = "Income must be greater than 0";
     }
-  }
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-zinc-900 rounded-lg border border-zinc-800 p-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold text-white mb-1">
-              Create Account
-            </h1>
-            <p className="text-sm text-zinc-400">
-              Join us and take control of your finances
-            </p>
+    if (formData.categories.length === 0) {
+      newErrors.categories = "Please select at least one category";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Password strength calculator
+  const getPasswordStrength = (pwd) => {
+    if (!pwd) return { strength: 0, label: "", color: "" };
+    let strength = 0;
+
+    if (pwd.length >= 8) strength++;
+    if (pwd.length >= 12) strength++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+    if (/\d/.test(pwd)) strength++;
+    if (/[^a-zA-Z\d]/.test(pwd)) strength++;
+
+    if (strength <= 2)
+      return { strength: 33, label: "Weak", color: "bg-red-500" };
+    if (strength <= 3)
+      return { strength: 66, label: "Medium", color: "bg-yellow-500" };
+    return { strength: 100, label: "Strong", color: "bg-green-500" };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  // Handle field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  // Category management
+  const addCategory = () => {
+    if (
+      newCategory.trim() &&
+      !formData.categories.includes(newCategory.trim())
+    ) {
+      setFormData((prev) => ({
+        ...prev,
+        categories: [...prev.categories, newCategory.trim()],
+      }));
+      setNewCategory("");
+    }
+  };
+
+  const removeCategory = (cat) => {
+    setFormData((prev) => ({
+      ...prev,
+      categories: prev.categories.filter((c) => c !== cat),
+    }));
+  };
+
+  // Navigation
+  const handleNext = () => {
+    let isValid = false;
+    if (step === 1) isValid = validateStep1();
+    if (step === 2) isValid = validateStep2();
+
+    if (isValid) {
+      setStep(step + 1);
+      setError("");
+    }
+  };
+
+  const handleBack = () => {
+    setStep(step - 1);
+    setErrors({});
+    setError("");
+  };
+
+  // Submit
+  const handleSubmit = async () => {
+    if (!validateStep3()) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = signup(formData)
+
+      setSuccess(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Success screen
+  if (success) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center p-4">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-md w-full text-center transform animate-scale-in">
+          <div className="w-20 h-20 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="w-12 h-12 text-green-500" />
           </div>
-
-          <form className="space-y-5" onSubmit={handleSubmit}>
-            {/* Full Name Field */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <UserIcon className="h-5 w-5 text-zinc-500" />
-                </div>
-                <input
-                  type="text"
-                  className={`w-full pl-10 pr-4 py-2.5 bg-black border rounded-md text-white text-sm placeholder-zinc-500 focus:outline-none transition ${
-                    errors.fullName
-                      ? "border-red-500 focus:border-red-400"
-                      : "border-zinc-800 focus:border-zinc-600"
-                  }`}
-                  placeholder="Enter your full name"
-                  value={formData.fullName}
-                  onChange={(e) =>
-                    handleInputChange("fullName", e.target.value)
-                  }
-                  required
-                  autoComplete="name"
-                />
-              </div>
-              {errors.fullName && (
-                <p className="mt-1 text-sm text-red-400">{errors.fullName}</p>
-              )}
-            </div>
-
-            {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Email
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <MailIcon className="h-5 w-5 text-zinc-500" />
-                </div>
-                <input
-                  type="email"
-                  className={`w-full pl-10 pr-4 py-2.5 bg-black border rounded-md text-white text-sm placeholder-zinc-500 focus:outline-none transition ${
-                    errors.email
-                      ? "border-red-500 focus:border-red-400"
-                      : "border-zinc-800 focus:border-zinc-600"
-                  }`}
-                  placeholder="you@company.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  required
-                  autoComplete="email"
-                />
-              </div>
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-400">{errors.email}</p>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockIcon className="h-5 w-5 text-zinc-500" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  className={`w-full pl-10 pr-16 py-2.5 bg-black border rounded-md text-white text-sm placeholder-zinc-500 focus:outline-none transition ${
-                    errors.password
-                      ? "border-red-500 focus:border-red-400"
-                      : "border-zinc-800 focus:border-zinc-600"
-                  }`}
-                  placeholder="Create a strong password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
-                  required
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-medium text-zinc-400 hover:text-white transition"
-                  onClick={() => setShowPassword((s) => !s)}
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-400">{errors.password}</p>
-              )}
-            </div>
-
-            {/* Confirm Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-zinc-300 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <LockIcon className="h-5 w-5 text-zinc-500" />
-                </div>
-                <input
-                  type={showConfirmPassword ? "text" : "password"}
-                  className={`w-full pl-10 pr-16 py-2.5 bg-black border rounded-md text-white text-sm placeholder-zinc-500 focus:outline-none transition ${
-                    errors.confirmPassword
-                      ? "border-red-500 focus:border-red-400"
-                      : "border-zinc-800 focus:border-zinc-600"
-                  }`}
-                  placeholder="Confirm your password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange("confirmPassword", e.target.value)
-                  }
-                  required
-                  autoComplete="new-password"
-                />
-                <button
-                  type="button"
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-xs font-medium text-zinc-400 hover:text-white transition"
-                  onClick={() => setShowConfirmPassword((s) => !s)}
-                  aria-label={
-                    showConfirmPassword ? "Hide password" : "Show password"
-                  }
-                >
-                  {showConfirmPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-400">
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-white hover:bg-zinc-100 text-black font-medium py-2.5 px-4 rounded-md transition text-sm"
-            >
-              Create Account
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-zinc-800 text-center">
-            <p className="text-sm text-zinc-400">
-              Already have an account?{" "}
-              <Link to="/login" className="text-white hover:underline">
-                Sign in
-              </Link>
-            </p>
-          </div>
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Welcome Aboard!
+          </h2>
+          <p className="text-zinc-400 mb-8">
+            Your account has been created successfully. You can now start
+            managing your finances.
+          </p>
+          <button
+            onClick={() => (window.location.href = "/login")}
+            className="w-full bg-white text-black font-semibold py-3 rounded-lg hover:bg-zinc-100 transition duration-200"
+          >
+            Get Started
+          </button>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 max-w-2xl w-full">
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm font-medium text-white">
+              Step {step} of 3
+            </span>
+            <span className="text-sm text-zinc-400">
+              {Math.round((step / 3) * 100)}%
+            </span>
+          </div>
+          <div className="w-full bg-zinc-800 rounded-full h-2">
+            <div
+              className="bg-white h-2 rounded-full transition-all duration-500 ease-out"
+              style={{ width: `${(step / 3) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Step Content */}
+        <div className="mb-8">
+          {/* Step 1: Personal Details */}
+          {step === 1 && (
+            <div className="animate-fade-in">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <User className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-white text-center mb-2">
+                Personal Details
+              </h2>
+              <p className="text-zinc-400 text-center mb-6">
+                Let's start with the basics
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Username
+                  </label>
+                  <input
+                    type="text"
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-black border ${
+                      errors.username ? "border-red-500" : "border-zinc-800"
+                    } rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition`}
+                    placeholder="johndoe"
+                  />
+                  {errors.username && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.username}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-black border ${
+                      errors.email ? "border-red-500" : "border-zinc-800"
+                    } rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition`}
+                    placeholder="john@example.com"
+                  />
+                  {errors.email && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.email}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Security */}
+          {step === 2 && (
+            <div className="animate-fade-in">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <Lock className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-white text-center mb-2">
+                Secure Your Account
+              </h2>
+              <p className="text-zinc-400 text-center mb-6">
+                Create a strong password
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 bg-black border ${
+                        errors.password ? "border-red-500" : "border-zinc-800"
+                      } rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition pr-12`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {formData.password && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs text-zinc-400">
+                          Password strength
+                        </span>
+                        <span
+                          className={`text-xs font-medium ${
+                            passwordStrength.label === "Strong"
+                              ? "text-green-500"
+                              : passwordStrength.label === "Medium"
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {passwordStrength.label}
+                        </span>
+                      </div>
+                      <div className="w-full bg-zinc-800 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                          style={{ width: `${passwordStrength.strength}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                  {errors.password && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.password}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 bg-black border ${
+                        errors.confirmPassword
+                          ? "border-red-500"
+                          : "border-zinc-800"
+                      } rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition pr-12`}
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-5 h-5" />
+                      ) : (
+                        <Eye className="w-5 h-5" />
+                      )}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.confirmPassword}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Financial Setup */}
+          {step === 3 && (
+            <div className="animate-fade-in">
+              <div className="flex items-center justify-center mb-6">
+                <div className="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center">
+                  <DollarSign className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <h2 className="text-2xl font-bold text-white text-center mb-2">
+                Financial Setup
+              </h2>
+              <p className="text-zinc-400 text-center mb-6">
+                Help us personalize your experience
+              </p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Monthly Income
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-medium">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      name="income"
+                      value={formData.income}
+                      onChange={handleChange}
+                      className={`w-full pl-8 pr-4 py-3 bg-black border ${
+                        errors.income ? "border-red-500" : "border-zinc-800"
+                      } rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition`}
+                      placeholder="5000"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  {errors.income && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.income}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-300 mb-2">
+                    Expense Categories
+                  </label>
+                  <div className="flex gap-2 mb-3">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      onKeyPress={(e) =>
+                        e.key === "Enter" && (e.preventDefault(), addCategory())
+                      }
+                      className="flex-1 px-4 py-2 bg-black border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-600 transition"
+                      placeholder="Add custom category"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCategory}
+                      className="px-4 py-2 bg-white text-black rounded-lg hover:bg-zinc-100 transition font-medium"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {formData.categories.map((cat) => (
+                      <div
+                        key={cat}
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-zinc-800 border border-zinc-700 text-white rounded-full text-sm font-medium"
+                      >
+                        {cat}
+                        <button
+                          type="button"
+                          onClick={() => removeCategory(cat)}
+                          className="hover:bg-zinc-700 rounded-full p-0.5 transition"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {errors.categories && (
+                    <p className="mt-2 text-sm text-red-600 flex items-center">
+                      <AlertCircle className="w-4 h-4 mr-1" />
+                      {errors.categories}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-start">
+            <AlertCircle className="w-5 h-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* Navigation Buttons */}
+        <div className="flex gap-4">
+          {step > 1 && (
+            <button
+              onClick={handleBack}
+              disabled={loading}
+              className="flex-1 px-6 py-3 border border-zinc-700 text-zinc-300 font-semibold rounded-lg hover:bg-zinc-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Back
+            </button>
+          )}
+          {step < 3 ? (
+            <button
+              onClick={handleNext}
+              className="flex-1 px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-zinc-100 transition"
+            >
+              Next
+            </button>
+          ) : (
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-white text-black font-semibold rounded-lg hover:bg-zinc-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Creating Account...
+                </>
+              ) : (
+                "Create Account"
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Login Link */}
+        <p className="text-center text-sm text-zinc-400 mt-6">
+          Already have an account?{" "}
+          <a href="/login" className="text-white hover:underline font-semibold">
+            Log in
+          </a>
+        </p>
+      </div>
+
+      <style>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes scale-in {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.4s ease-out;
+        }
+        
+        .animate-scale-in {
+          animation: scale-in 0.5s ease-out;
+        }
+      `}</style>
     </div>
-  );
-}
-
-// Icon Components
-function UserIcon({ className = "" }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M12 2.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0 1.5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm-8.5 9.5A2.75 2.75 0 0 1 6.25 11h11.5A2.75 2.75 0 0 1 20.5 13.75v.75c0 3.25-2.75 5.5-8.5 5.5s-8.5-2.25-8.5-5.5v-.75zm2.75-1.25A1.25 1.25 0 0 0 5 13.75v.75c0 2.25 2 3.5 7 3.5s7-1.25 7-3.5v-.75A1.25 1.25 0 0 0 17.75 12.25H6.25z" />
-    </svg>
-  );
-}
-
-function MailIcon({ className = "" }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M3.75 5.5h16.5A1.75 1.75 0 0 1 22 7.25v9.5A1.75 1.75 0 0 1 20.25 18.5H3.75A1.75 1.75 0 0 1 2 16.75v-9.5A1.75 1.75 0 0 1 3.75 5.5zm.8 2.25 6.96 4.41a1.75 1.75 0 0 0 1.98 0l6.96-4.41a.25.25 0 0 0-.14-.45H4.69a.25.25 0 0 0-.14.45z" />
-    </svg>
-  );
-}
-
-function LockIcon({ className = "" }) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-    >
-      <path d="M12 2.5a4.5 4.5 0 0 1 4.5 4.5v2h.75A1.75 1.75 0 0 1 19 10.75v7.5A1.75 1.75 0 0 1 17.25 20H6.75A1.75 1.75 0 0 1 5 18.25v-7.5A1.75 1.75 0 0 1 6.75 9h.75V7A4.5 4.5 0 0 1 12 2.5zm0 1.5A3 3 0 0 0 9 7v2h6V7a3 3 0 0 0-3-3z" />
-    </svg>
   );
 }

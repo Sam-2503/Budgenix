@@ -10,6 +10,7 @@ import Welcomepage from "./pages/Welcomepage";
 import FeaturesPage from "./pages/featurepage";
 import SignupPage from "./pages/signupPage";
 import Contact from "./pages/contact";
+
 function App() {
   const [count, setCount] = useState(0);
 
