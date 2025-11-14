@@ -1,1 +1,1 @@
-# Budgenix
+# FinBuddy

@@ -21,13 +21,12 @@ app.get("/api/health", (req: Request, res: Response) => {
 
 // Root endpoint
 app.get("/", (req: Request, res: Response) => {
-  res.send("Budgenix server (TypeScript) is running");
+  res.send("FinBuddy server (TypeScript) is running");
 });
-
 
 // User routes
 app.use("/api/users", userRoutes);
-app.use("/api/expenses",expenseRoutes ); // Placeholder for expenses routes
+app.use("/api/expenses", expenseRoutes); // Placeholder for expenses routes
 
 // Start the server after connecting to the database
 connectToMongoDB()

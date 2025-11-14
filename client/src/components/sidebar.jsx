@@ -31,7 +31,7 @@ export function Sidebar() {
           <div className="w-8 h-8 bg-white rounded-md flex items-center justify-center">
             <span className="text-black font-bold text-sm">B</span>
           </div>
-          <span className="text-white font-semibold text-lg">Budgenix</span>
+          <span className="text-white font-semibold text-lg">FinBuddy</span>
         </div>
       </div>
 

@@ -127,12 +127,12 @@ export default function Contact() {
         <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Project Repository</h2>
           <p className="text-zinc-400 mb-6">
-            Budgenix is an open-source project. Check out our code, contribute,
+            FinBuddy is an open-source project. Check out our code, contribute,
             or report issues on GitHub.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <a
-              href="https://github.com/kaihere14/Budgenix"
+              href="https://github.com/kaihere14/FinBuddy"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 px-6 py-3 bg-white text-black font-medium rounded-lg hover:bg-zinc-100 transition-colors"

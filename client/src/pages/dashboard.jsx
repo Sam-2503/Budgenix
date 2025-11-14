@@ -28,7 +28,11 @@ export const Dashboard = () => {
     // setExpenses(response.data.expenses);
 
     // Mock expenses for now
-    const mockExpenses = [];
+    const mockExpenses = [
+      { id: 1, category: "Food", amount: 150 },
+      { id: 2, category: "Transport", amount: 50 },
+      { id: 3, category: "Utilities", amount: 100 },
+    ];
     setExpenses(mockExpenses);
 
     // Calculate total spent
@@ -97,7 +101,6 @@ export const Dashboard = () => {
               trendText={`${remainingPercentage}% remaining`}
             />
           </div>
-
           {/* Categories Overview */}
           {user.categories && user.categories.length > 0 && (
             <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6">
