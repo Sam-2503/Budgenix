@@ -9,6 +9,7 @@ import LoginPage from "./pages/loginPage";
 import Welcomepage from "./pages/Welcomepage";
 import FeaturesPage from "./pages/featurepage";
 import SignupPage from "./pages/signupPage";
+import Contact from "./pages/contact";
 function App() {
   const [count, setCount] = useState(0);
 
@@ -21,6 +22,7 @@ function App() {
           <Route path="/features" element={<FeaturesPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/contact" element={<Contact />} />
         </Routes>
       </div>
     </>

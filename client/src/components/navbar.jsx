@@ -10,7 +10,7 @@ export function Navbar() {
             <span className="text-black font-bold text-sm">F</span>
           </div>
           <Link to="/">
-            <h2 className="text-xl font-semibold">Finance</h2>
+            <h2 className="text-xl font-semibold">FinBuddy</h2>
           </Link>
         </div>
 
@@ -25,15 +25,15 @@ export function Navbar() {
             </Link>
             <Link
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-              to="/pricing"
+              to="/contact"
             >
-              Pricing
+              Contact Us
             </Link>
             <Link
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-              to="/blog"
+              to="/login"
             >
-              Blog
+              Log In
             </Link>
           </div>
           <Link
