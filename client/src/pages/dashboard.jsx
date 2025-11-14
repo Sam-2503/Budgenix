@@ -1,24 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import RecentActivity from "../components/recentActivity";
 import { Sidebar } from "../components/sidebar";
 import { StatCard } from "../components/card";
 import { Chart } from "../components/categoryCard";
 import { useAuth } from "../context/AuthContext";
+import { useExpense } from "../context/ExpenseContext";
 
 export const Dashboard = () => {
-  const { user, isFetchingUserData } = useAuth();
-  const [totalSpent, setTotalSpent] = useState(0);
-  const [expenses, setExpenses] = useState([]);
+  const { user, isFetchingUserData, isLoading } = useAuth();
+  const { expenses, getTotalSpent, isLoadingExpenses } = useExpense();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      console.log("User data:", user);
+    console.log("Expenses updated:", expenses);
+  }, [expenses]);
 
-      // TODO: Fetch real expenses from API
-      // For now using mock data
-      fetchExpenses();
+  useEffect(() => {
+    // Check authentication after initial loading is complete
+    if (!isLoading && !isFetchingUserData) {
+      const token = localStorage.getItem("accessToken");
+      if (!token || !user) {
+        toast.error("Please login to continue", {
+          duration: 3000,
+          position: "top-center",
+        });
+        navigate("/login");
+        return;
+      }
     }
-  }, [user]);
 
   const fetchExpenses = async () => {
     // TODO: Replace with actual API call
@@ -44,15 +55,25 @@ export const Dashboard = () => {
   };
 
   // Calculate metrics
+  const totalSpent = getTotalSpent();
   const income = user?.income || 0;
   const budgetRemaining = income - totalSpent;
   const spendPercentage =
     income > 0 ? ((totalSpent / income) * 100).toFixed(1) : 0;
   const remainingPercentage =
-    income > 0 ? ((budgetRemaining / income) * 100).toFixed(0) : 0;
+    income > 0 ? Math.max(0, Math.floor((budgetRemaining / income) * 100)) : 0;
 
-  // Show loading state
-  if (isFetchingUserData || !user) {
+  // Debug log
+  console.log("Dashboard Metrics:", {
+    totalSpent,
+    income,
+    budgetRemaining,
+    spendPercentage,
+    remainingPercentage,
+  });
+
+  // Show loading state only during initial load
+  if (isLoading || isFetchingUserData) {
     return (
       <div className="min-h-screen w-full bg-black flex items-center justify-center">
         <div className="text-center">
@@ -61,6 +82,11 @@ export const Dashboard = () => {
         </div>
       </div>
     );
+  }
+
+  // If not authenticated after loading, don't render (will redirect)
+  if (!user) {
+    return null;
   }
 
   return (
@@ -121,8 +147,8 @@ export const Dashboard = () => {
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Chart categories={user.categories} />
-            <RecentActivity />
+            <Chart categories={user.categories} expenses={expenses} />
+            <RecentActivity expenses={expenses} />
           </div>
         </section>
       </main>

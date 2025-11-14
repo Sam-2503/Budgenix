@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Tremor chart color fixes */
+.tremor-DonutChart-slice {
+  stroke: #18181b !important;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

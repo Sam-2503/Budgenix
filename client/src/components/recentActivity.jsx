@@ -82,41 +82,102 @@ const RecentActivity = () => {
 
       {/* Transaction List */}
       <div className="space-y-4">
-        {transactions.map((transaction) => (
-          <div
-            key={transaction.id}
-            className="flex items-center justify-between"
-          >
-            {/* Left side - Icon and Details */}
-            <div className="flex items-center space-x-3">
-              {/* Icon */}
-              <div
-                className={`w-10 h-10 rounded-lg ${transaction.bgColor} flex items-center justify-center`}
-              >
-                <span className={`text-lg ${transaction.iconColor}`}>
-                  {transaction.icon}
-                </span>
-              </div>
-
-              {/* Transaction Details */}
-              <div>
-                <p className="font-medium text-gray-200 text-sm">
-                  {transaction.name}
-                </p>
-                <p className="text-xs text-gray-400">{transaction.date}</p>
-              </div>
-            </div>
-
-            {/* Right side - Amount */}
+        {transactions.length > 0 ? (
+          transactions.map((transaction) => (
             <div
-              className={`font-semibold text-sm ${getAmountColor(
-                transaction.amount
-              )}`}
+              key={transaction.id}
+              className="flex items-center justify-between group relative hover:bg-zinc-800/50 p-2 -m-2 rounded-lg transition-all cursor-pointer"
+              onMouseEnter={() => setHoveredId(transaction.id)}
+              onMouseLeave={() => setHoveredId(null)}
             >
-              {formatAmount(transaction.amount)}
+              {/* Left side - Icon and Details */}
+              <div className="flex items-center space-x-3">
+                {/* Icon */}
+                <div
+                  className={`w-10 h-10 rounded-lg ${transaction.bgColor} flex items-center justify-center`}
+                >
+                  <span className={`text-lg ${transaction.iconColor}`}>
+                    {transaction.icon}
+                  </span>
+                </div>
+
+                {/* Transaction Details */}
+                <div>
+                  <p className="font-medium text-gray-200 text-sm">
+                    {transaction.name}
+                  </p>
+                  <p className="text-xs text-gray-400">{transaction.date}</p>
+                </div>
+              </div>
+
+              {/* Right side - Amount and Delete Button */}
+              <div className="flex items-center gap-3">
+                <div
+                  className={`font-semibold text-sm ${getAmountColor(
+                    transaction.amount
+                  )}`}
+                >
+                  {formatAmount(transaction.amount)}
+                </div>
+
+                {/* Delete Button (shown on hover) */}
+                {hoveredId === transaction.id && (
+                  <button
+                    onClick={() =>
+                      handleDelete(transaction.id, transaction.name)
+                    }
+                    disabled={deletingId === transaction.id}
+                    className="p-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete expense"
+                  >
+                    {deletingId === transaction.id ? (
+                      <svg
+                        className="w-4 h-4 text-red-400 animate-spin"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    ) : (
+                      <svg
+                        className="w-4 h-4 text-red-400"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-zinc-400 mb-1">No recent activity</p>
+            <p className="text-xs text-zinc-500">
+              Your recent transactions will appear here
+            </p>
           </div>
-        ))}
+        )}
       </div>
 
       {/* View All Link */}

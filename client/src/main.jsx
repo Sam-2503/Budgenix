@@ -4,12 +4,15 @@ import "./index.css";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
+import { ExpenseProvider } from "./context/ExpenseContext.jsx";
 import LoginPage from "./pages/loginPage.jsx";
 
 createRoot(document.getElementById("root")).render(
   <AuthProvider>
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>
+    <ExpenseProvider>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </ExpenseProvider>
   </AuthProvider>
 );
