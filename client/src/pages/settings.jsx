@@ -7,8 +7,7 @@ import { useAuth } from "../context/AuthContext";
 const Settings = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const navigate = useNavigate();
-  const { logout } = useAuth();
-
+  const { logout, user } = useAuth();
   const handleLogout = () => {
     // Add logout logic here
 
@@ -48,6 +47,10 @@ const Settings = () => {
     ) {
       console.log("Deleting account...");
     }
+  };
+
+  const getInitial = (name) => {
+    return name ? name.charAt(0).toUpperCase() : "U";
   };
 
   const handleReportBug = () => {
@@ -104,6 +107,54 @@ const Settings = () => {
         </header>
 
         <div className="max-w-3xl">
+          {/* User Profile Section */}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 mb-6">
+            <div className="flex items-center space-x-6">
+              {/* Profile Picture */}
+              <div className="w-20 h-20 rounded-full border-2 border-zinc-700">
+                <span className="text-white text-sm font-medium">
+                  {getInitial(user.username)}
+                </span>
+              </div>
+
+              {/* User Info */}
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-white mb-1">
+                  {user.username || "No Username"}
+                </h2>
+                <p className="text-zinc-400 mb-2">
+                  {user?.email || "No email provided"}
+                </p>
+                <div className="flex items-center space-x-4 text-sm text-zinc-500">
+                  <span className="flex items-center space-x-1">
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3a1 1 0 011-1h6a1 1 0 011 1v4h3a1 1 0 011 1v9a1 1 0 01-1 1H5a1 1 0 01-1-1V8a1 1 0 011-1h3z"
+                      />
+                    </svg>
+                    <span>
+                      Member since{" "}
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString("en-US", {
+                            month: "long",
+                            year: "numeric",
+                          })
+                        : "Recently"}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Settings List */}
           <div className="bg-zinc-900 border border-zinc-800 rounded-lg divide-y divide-zinc-800">
             {/* Sign Out */}
