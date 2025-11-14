@@ -1,7 +1,10 @@
 import { Router } from "express";
-import { createExpense } from "../controllers/expenses.controller.js";
+import { createExpense, deleteExpense } from "../controllers/expenses.controller.js";
+import { verifyJwt } from "../middleware/verifyJwt.js";
 const router = Router();
 
-router.post("/create", createExpense);
+// Import expense controller functions
+router.post("/create",verifyJwt, createExpense);
+router.delete("/delete/:expenseId",verifyJwt,deleteExpense);
 
 export default router;

@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { connectToMongoDB } from "./databases/mongo.db.js";
 import userRoutes from "./routes/user.routes.js";
+import expenseRoutes from "./routes/expense.routes.js";
 
 // Load environment variables
 dotenv.config();
@@ -23,8 +24,10 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Budgenix server (TypeScript) is running");
 });
 
+
 // User routes
 app.use("/api/users", userRoutes);
+app.use("/api/expenses",expenseRoutes ); // Placeholder for expenses routes
 
 // Start the server after connecting to the database
 connectToMongoDB()
