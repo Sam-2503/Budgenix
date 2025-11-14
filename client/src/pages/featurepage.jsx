@@ -1,6 +1,37 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/navbar";
+
 export default function FeaturesPage() {
+  const navigate = useNavigate();
+  const { isUserLoggedIn, isLoading } = useAuth();
+
+  const handleStartJourney = () => {
+    // If already logged in, redirect to dashboard
+    if (isUserLoggedIn) {
+      navigate("/dashboard");
+      return;
+    }
+
+    // If not logged in, redirect to signup page
+    if (!isLoading) {
+      navigate("/signup");
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-zinc-800 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-black text-white">
       {/* Header */}
@@ -79,7 +110,7 @@ export default function FeaturesPage() {
                     </div>
                     <div className="flex-1 bg-green-500/10 border border-green-500/20 rounded-lg p-3">
                       <p className="text-sm text-zinc-300">
-                        You spent $142 on food this week. That's 18% over your
+                        You spent ₹142 on food this week. That's 18% over your
                         weekly budget. Would you like some tips to reduce dining
                         out expenses?
                       </p>
@@ -338,7 +369,10 @@ export default function FeaturesPage() {
               Join thousands who've transformed their financial future through
               simple conversations
             </p>
-            <button className="flex w-fit mx-auto cursor-pointer items-center justify-center rounded-md h-12 px-8 bg-green-500 text-white text-base font-medium hover:bg-green-600 transition-all">
+            <button
+              onClick={handleStartJourney}
+              className="flex w-fit mx-auto cursor-pointer items-center justify-center rounded-md h-12 px-8 bg-green-500 text-white text-base font-medium hover:bg-green-600 transition-all"
+            >
               <span className="truncate">Start Your Journey Free</span>
             </button>
           </section>

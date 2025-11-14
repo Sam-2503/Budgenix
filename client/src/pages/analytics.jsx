@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Sidebar } from "../components/sidebar";
 import { Chart } from "../components/categoryCard";
+import { useExpense } from "../context/ExpenseContext";
+import { useAuth } from "../context/AuthContext";
 
 export function Analytics() {
+  const { expenses } = useExpense();
+  const { user } = useAuth();
   const [selectedTimeRange, setSelectedTimeRange] = useState("30days");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
@@ -14,26 +18,57 @@ export function Analytics() {
     { value: "year", label: "This year" },
   ];
 
-  const categories = [
-    { value: "all", label: "All Categories" },
-    { value: "food", label: "Food & Dining" },
-    { value: "shopping", label: "Shopping" },
-    { value: "transport", label: "Transportation" },
-    { value: "housing", label: "Housing" },
-    { value: "entertainment", label: "Entertainment" },
-    { value: "utilities", label: "Utilities" },
-    { value: "healthcare", label: "Healthcare" },
-  ];
+  // Get categories from user profile
+  const categories = useMemo(() => {
+    const userCategories = user?.categories || [];
+    return [
+      { value: "all", label: "All Categories" },
+      ...userCategories.map((cat) => ({
+        value: cat.toLowerCase(),
+        label: cat,
+      })),
+    ];
+  }, [user?.categories]);
 
-  // Dummy data for the spending chart
-  const dummyExpenses = [
-    { category: "food", amount: 3290, type: "expense" },
-    { category: "shopping", amount: 2850, type: "expense" },
-    { category: "transport", amount: 1120, type: "expense" },
-    { category: "housing", amount: 8000, type: "expense" },
-    { category: "entertainment", amount: 599, type: "expense" },
-    { category: "utilities", amount: 1250, type: "expense" },
-  ];
+  // Filter expenses by time range
+  const filteredExpenses = useMemo(() => {
+    const now = new Date();
+    const filterDate = new Date();
+
+    switch (selectedTimeRange) {
+      case "7days":
+        filterDate.setDate(now.getDate() - 7);
+        break;
+      case "30days":
+        filterDate.setDate(now.getDate() - 30);
+        break;
+      case "3months":
+        filterDate.setMonth(now.getMonth() - 3);
+        break;
+      case "6months":
+        filterDate.setMonth(now.getMonth() - 6);
+        break;
+      case "year":
+        filterDate.setFullYear(now.getFullYear() - 1);
+        break;
+      default:
+        filterDate.setDate(now.getDate() - 30);
+    }
+
+    let filtered = expenses.filter((expense) => {
+      const expenseDate = new Date(expense.date);
+      return expenseDate >= filterDate && expense.type === "expense";
+    });
+
+    // Apply category filter if not "all"
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(
+        (expense) => expense.category?.toLowerCase() === selectedCategory
+      );
+    }
+
+    return filtered;
+  }, [expenses, selectedTimeRange, selectedCategory]);
 
   return (
     <div className="min-h-screen w-full bg-black flex">
@@ -94,184 +129,74 @@ export function Analytics() {
 
         {/* Analytics Grid */}
         <div className="space-y-8">
-          {/* Row 1: Spending Overview & Monthly Comparison */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Spending by Category Donut Chart */}
-            <Chart expenses={dummyExpenses} />
-
-            {/* Monthly Comparison Chart */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Monthly Comparison
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <TrendingUpIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Monthly Comparison Chart</p>
-                  <p className="text-xs text-zinc-500">
-                    Compare spending with previous months
-                  </p>
-                </div>
-              </div>
-            </div>
+          {/* Overall Spending Overview - Full Width */}
+          <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
+            <h3 className="text-lg font-semibold text-white mb-6">
+              Overall Spending by Category
+            </h3>
+            <Chart categories={user?.categories} expenses={filteredExpenses} />
           </div>
 
-          {/* Row 2: Spending Trends & Top Expenses */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Spending Trends Line Chart */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Spending Trends
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <LineChartIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Spending Trends</p>
-                  <p className="text-xs text-zinc-500">
-                    Track your spending patterns over time
-                  </p>
-                </div>
-              </div>
-            </div>
+          {/* Category Breakdown Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {user?.categories?.map((category) => {
+              const categoryExpenses = filteredExpenses.filter(
+                (exp) => exp.category?.toLowerCase() === category.toLowerCase()
+              );
+              const categoryTotal = categoryExpenses.reduce(
+                (sum, exp) => sum + exp.amount,
+                0
+              );
+              const categoryCount = categoryExpenses.length;
 
-            {/* Top Spending Categories */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Top Spending Categories
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <BarChartIcon className="w-8 h-8 text-zinc-600" />
+              return (
+                <div
+                  key={category}
+                  className="bg-zinc-900 rounded-lg p-6 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <h4 className="text-lg font-semibold text-white">
+                      {category}
+                    </h4>
+                    <div className="text-right">
+                      <p className="text-sm text-zinc-400">
+                        {categoryCount}{" "}
+                        {categoryCount === 1 ? "expense" : "expenses"}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-zinc-400 mb-2">Top Categories</p>
-                  <p className="text-xs text-zinc-500">
-                    See where you spend the most money
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 3: Income vs Expenses & Budget Performance */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Income vs Expenses Chart */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Income vs Expenses
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <CompareIcon className="w-8 h-8 text-zinc-600" />
+                  <div className="space-y-2">
+                    <p className="text-2xl font-bold text-white">
+                      ₹{categoryTotal.toLocaleString("en-IN")}
+                    </p>
+                    {categoryExpenses.length > 0 ? (
+                      <div className="pt-3 border-t border-zinc-800">
+                        <p className="text-xs text-zinc-500 mb-2">
+                          Recent expenses:
+                        </p>
+                        <div className="space-y-1">
+                          {categoryExpenses.slice(0, 3).map((exp, idx) => (
+                            <div
+                              key={idx}
+                              className="flex justify-between text-xs"
+                            >
+                              <span className="text-zinc-400 truncate">
+                                {exp.title || exp.description || "Expense"}
+                              </span>
+                              <span className="text-zinc-300 ml-2">
+                                ₹{exp.amount.toLocaleString("en-IN")}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-zinc-500">No expenses yet</p>
+                    )}
                   </div>
-                  <p className="text-zinc-400 mb-2">Income vs Expenses</p>
-                  <p className="text-xs text-zinc-500">
-                    Compare your income and spending patterns
-                  </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Budget Performance */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Budget Performance
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <TargetIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Budget Performance</p>
-                  <p className="text-xs text-zinc-500">
-                    Track how well you stick to your budgets
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 4: Weekly Pattern & Expense Growth */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Weekly Spending Pattern */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Weekly Spending Pattern
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <CalendarIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Weekly Patterns</p>
-                  <p className="text-xs text-zinc-500">
-                    Discover your spending habits by day of week
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Expense Growth Rate */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Expense Growth Rate
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <GrowthIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Growth Analysis</p>
-                  <p className="text-xs text-zinc-500">
-                    Monitor how your expenses change over time
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Row 5: Financial Goals & Savings Rate */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Financial Goals Progress */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Financial Goals Progress
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <GoalIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Goals Progress</p>
-                  <p className="text-xs text-zinc-500">
-                    Track progress towards your financial goals
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Savings Rate Analysis */}
-            <div className="bg-zinc-900 rounded-lg p-6 border border-zinc-800">
-              <h3 className="text-lg font-semibold text-white mb-6">
-                Savings Rate Analysis
-              </h3>
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <PiggyBankIcon className="w-8 h-8 text-zinc-600" />
-                  </div>
-                  <p className="text-zinc-400 mb-2">Savings Analysis</p>
-                  <p className="text-xs text-zinc-500">
-                    Monitor your savings rate and trends
-                  </p>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </main>

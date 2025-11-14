@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import { connectToMongoDB } from "./databases/mongo.db.js";
 import userRoutes from "./routes/user.routes.js";
 import expenseRoutes from "./routes/expense.routes.js";
+import agoraRoutes from "./routes/agora.routes.js";
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.get("/", (req: Request, res: Response) => {
 // User routes
 app.use("/api/users", userRoutes);
 app.use("/api/expenses", expenseRoutes); // Placeholder for expenses routes
+app.use("/api/agora", agoraRoutes); // Agora AI routes
 
 // Start the server after connecting to the database
 connectToMongoDB()

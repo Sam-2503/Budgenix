@@ -1,7 +1,36 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import { Navbar } from "../components/navbar";
+
 export default function Welcomepage() {
+  const navigate = useNavigate();
+  const { isUserLoggedIn, isLoading } = useAuth();
+
+  const handleGetStarted = () => {
+    // If already logged in, redirect to dashboard
+    if (isUserLoggedIn) {
+      navigate("/dashboard");
+      return;
+    }
+
+    // If not logged in, redirect to signup page
+    if (!isLoading) {
+      navigate("/signup");
+    }
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen w-full bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-zinc-800 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-black text-white">
@@ -24,7 +53,10 @@ export default function Welcomepage() {
                     to a better budget.
                   </p>
                 </div>
-                <button className="flex w-fit cursor-pointer items-center justify-center rounded-md h-12 px-6 bg-white text-black text-base font-medium hover:bg-zinc-100 transition-all">
+                <button
+                  onClick={handleGetStarted}
+                  className="flex w-fit cursor-pointer items-center justify-center rounded-md h-12 px-6 bg-white text-black text-base font-medium hover:bg-zinc-100 transition-all"
+                >
                   <span className="truncate">Try for free</span>
                 </button>
               </div>
@@ -36,13 +68,13 @@ export default function Welcomepage() {
                         Your spending this month
                       </p>
                       <p className="text-2xl font-semibold mt-2 text-red-400">
-                        $2,847
+                        ₹2,847
                       </p>
                     </div>
                     <div className="bg-zinc-800 rounded-lg p-4">
                       <p className="text-sm text-zinc-400">Budget remaining</p>
                       <p className="text-2xl font-semibold mt-2 text-green-400">
-                        $1,153
+                        ₹1,153
                       </p>
                     </div>
                   </div>
@@ -151,7 +183,10 @@ export default function Welcomepage() {
               Join thousands of students and young professionals who are taking
               control of their financial future.
             </p>
-            <button className="flex w-fit cursor-pointer items-center justify-center rounded-md h-12 px-6 bg-white text-black text-base font-medium hover:bg-zinc-100 transition-all">
+            <button
+              onClick={handleGetStarted}
+              className="flex w-fit cursor-pointer items-center justify-center rounded-md h-12 px-6 bg-white text-black text-base font-medium hover:bg-zinc-100 transition-all"
+            >
               <span className="truncate">Get Started Now</span>
             </button>
           </section>
