@@ -27,7 +27,7 @@ export const ExpenseProvider = ({ children }) => {
       const token = localStorage.getItem("accessToken");
 
       const response = await axios.get(
-        "http://localhost:3300/api/expenses/get-expenses",
+        "https://budgenix-seven.vercel.app/api/expenses/get-expenses",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -53,7 +53,7 @@ export const ExpenseProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("accessToken");
       const response = await axios.post(
-        "http://localhost:3300/api/expenses/create",
+        "https://budgenix-seven.vercel.app/api/expenses/create",
         expenseData,
         {
           headers: {
@@ -77,7 +77,7 @@ export const ExpenseProvider = ({ children }) => {
     try {
       const token = localStorage.getItem("accessToken");
       await axios.delete(
-        `http://localhost:3300/api/expenses/delete/${expenseId}`,
+        `https://budgenix-seven.vercel.app/api/expenses/delete/${expenseId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
       setIsFetchingUserData(true);
       const token = localStorage.getItem("accessToken");
       const response = await axios.get(
-        "http://localhost:3300/api/users/profile",
+        "https://budgenix-seven.vercel.app/api/users/profile",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       console.log("Logging in with credentials:", credentials);
 
       const response = await axios.post(
-        "http://localhost:3300/api/users/login",
+        "https://budgenix-seven.vercel.app/api/users/login",
         credentials
       );
 
@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
 
       const response = await axios.post(
-        "http://localhost:3300/api/users/register",
+        "https://budgenix-seven.vercel.app/api/users/register",
         userData
       );
 

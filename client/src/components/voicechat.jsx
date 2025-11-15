@@ -85,7 +85,7 @@ const VoiceAssistant = () => {
 
       setStatus("Starting AI...");
       const res = await axios.post(
-        "http://localhost:3300/api/agora/start-ai",
+        "https://budgenix-seven.vercel.app/api/agora/start-ai",
         { channel: CHANNEL },
         {
           headers: {
@@ -118,7 +118,7 @@ const VoiceAssistant = () => {
       if (agentId) {
         try {
           await axios.post(
-            "http://localhost:3300/api/agora/stop-ai",
+            "https://budgenix-seven.vercel.app/api/agora/stop-ai",
             { agent_id: agentId },
             {
               headers: {
@@ -213,7 +213,7 @@ const VoiceAssistant = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:3300/api/gemini/generateai",
+        "https://budgenix-seven.vercel.app/api/gemini/generateai",
         { userInput: message },
         {
           headers: {
