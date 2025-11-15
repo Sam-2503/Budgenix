@@ -48,7 +48,7 @@ export function Sidebar() {
   return (
     <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col sticky top-0 h-screen">
       <div className="py-6 px-3 border-b border-zinc-800">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center pl-2 gap-3">
           <div className="w-8 h-8 rounded-full flex items-center justify-center">
             <img
               src="https://res.cloudinary.com/dsplnfii2/image/upload/v1763158452/image-removebg-preview_ysz4j3.png"
@@ -60,7 +60,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <nav className="flex-1 py-4 space-y-1">
+      <nav className="flex-1 py-4 px-3 space-y-1">
         {menuItems.map((item) => {
           const isActive = isActiveRoute(item.link);
           return (
@@ -73,7 +73,7 @@ export function Sidebar() {
                   : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
               } ${!item.link ? "cursor-not-allowed opacity-50" : ""}`}
             >
-              <item.icon className="w-5 h-5" />
+              <item.icon className="w-6 h-6" />
               {item.label}
             </Link>
           );
@@ -112,14 +112,14 @@ export function Sidebar() {
               : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
           }`}
         >
-          <SettingsIcon className="w-5 h-5" />
+          <SettingsIcon className="w-6 h-6" />
           Settings
         </Link>
         <button
           onClick={logoutHandler}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
         >
-          <LogoutIcon className="w-5 h-5" />
+          <LogoutIcon className="w-6 h-6" />
           Logout
         </button>
       </div>
