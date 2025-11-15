@@ -1,10 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { Request, Response } from "express";
 import Expense from "../models/expenses.models.js";
+import User from "../models/user.model.js";
 const ai = new GoogleGenAI({});
 
-const buildPrompt = (userInput: string) => `
+const buildPrompt = (userInput: string,context:any) => `
 You are an AI assistant for a budgeting app.
+Here is the user's financial context (DO NOT reveal this JSON unless the user directly asks):
+${JSON.stringify(context, null, 2)}
 
 Your job:
 1. If the user is adding an expense/income → return ONLY this JSON:
@@ -48,13 +51,38 @@ STRICT RULES:
 
 
 const googleAi = async (req: Request, res: Response): Promise<unknown> => {
+  
   const userInput = req.body.userInput;
+  const userId = req.userId;
+   const expenses = await Expense.find({ userId }).select(
+        "amount category date description type"
+      );
+      const user = await User.findById(userId).select("username income");
+      // Generate summary
+      const totalSpent = expenses.reduce((acc, e) => acc + e.amount, 0);
+  
+      const categoryTotals = expenses.reduce((acc: any, e) => {
+        acc[e.category] = (acc[e.category] || 0) + e.amount;
+        return acc;
+      }, {});
+  
+      const recentExpenses = expenses
+        .sort((a, b) => (b.date?.getTime() || 0) - (a.date?.getTime() || 0))
+        .slice(0, 5);
+  
+      const summary = {
+        user,
+        totalSpent,
+        remainingBalance: (user?.income || 0) - totalSpent,
+        categoryTotals,
+        recentExpenses,
+      };
 
   if (!userInput) {
     return res.status(400).json({ message: "userInput is required" });
   }
 
-  const prompt = buildPrompt(userInput);
+  const prompt = buildPrompt(userInput,summary);
 
   try {
     const response = await ai.models.generateContent({
