@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Link, useLocation } from "react-router-dom";
 
-export function Sidebar() {
+export function Sidebar({ isOpen, setIsOpen }) {
   const location = useLocation();
   const { user } = useAuth();
 
@@ -28,11 +28,7 @@ export function Sidebar() {
     },
   ];
 
-  // Helper function to check if current route matches menu item
-  const isActiveRoute = (itemLink) => {
-    if (!itemLink) return false;
-    return location.pathname === itemLink;
-  };
+  const isActiveRoute = (itemLink) => location.pathname === itemLink;
 
   const logoutHandler = () => {
     localStorage.removeItem("accessToken");
@@ -40,94 +36,114 @@ export function Sidebar() {
     window.location.href = "/";
   };
 
-  // Get first letter of username for avatar
-  const getInitial = (name) => {
-    return name ? name.charAt(0).toUpperCase() : "U";
-  };
+  const getInitial = (name) => (name ? name.charAt(0).toUpperCase() : "U");
 
   return (
-    <aside className="w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col sticky top-0 h-screen">
-      <div className="py-6 px-3 border-b border-zinc-800">
-        <div className="flex items-center pl-2 gap-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center">
-            <img
-              src="https://res.cloudinary.com/dsplnfii2/image/upload/v1763158452/image-removebg-preview_ysz4j3.png"
-              alt="FinBuddy Logo"
-              className="w-10 h-10 object-contain"
-            />
+    <>
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          fixed inset-y-0 left-0 z-50
+          w-64 bg-zinc-900 border-r border-zinc-800 flex flex-col
+          transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "-translate-x-full"}
+          md:translate-x-0 md:static md:flex
+        `}
+      >
+        <div className="py-6 px-3 border-b border-zinc-800">
+          <div className="flex items-center pl-2 gap-3">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center">
+              <img
+                src="https://res.cloudinary.com/dsplnfii2/image/upload/v1763158452/image-removebg-preview_ysz4j3.png"
+                alt="FinBuddy Logo"
+                className="w-10 h-10 object-contain"
+              />
+            </div>
+            <span className="text-white font-semibold text-lg">FinBuddy</span>
           </div>
-          <span className="text-white font-semibold text-lg">FinBuddy</span>
         </div>
-      </div>
 
-      <nav className="flex-1 py-4 px-3 space-y-1">
-        {menuItems.map((item) => {
-          const isActive = isActiveRoute(item.link);
-          return (
-            <Link
-              to={item.link || "#"}
-              key={item.id}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition ${
-                isActive
-                  ? "bg-zinc-800 text-white"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
-              } ${!item.link ? "cursor-not-allowed opacity-50" : ""}`}
-            >
-              <item.icon className="w-6 h-6" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+        <nav className="flex-1 py-4 px-3 space-y-1">
+          {menuItems.map((item) => {
+            const isActive = isActiveRoute(item.link);
+            return (
+              <Link
+                to={item.link}
+                key={item.id}
+                onClick={() => setIsOpen(false)} // close on mobile
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition ${
+                  isActive
+                    ? "bg-zinc-800 text-white"
+                    : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                }`}
+              >
+                <item.icon className="w-6 h-6" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
 
-      <div className="p-4 border-t border-zinc-800 space-y-3">
-        {user ? (
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                {getInitial(user.username)}
-              </span>
+        <div className="p-4 border-t border-zinc-800 space-y-3">
+          {user ? (
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 bg-zinc-800 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {getInitial(user.username)}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-white truncate">
+                  {user.username}
+                </p>
+                <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                {user.username}
-              </p>
-              <p className="text-xs text-zinc-400 truncate">{user.email}</p>
+          ) : (
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 bg-zinc-800 rounded-full animate-pulse"></div>
+              <div className="flex-1 space-y-2">
+                <div className="h-3 bg-zinc-800 rounded animate-pulse"></div>
+                <div className="h-2 bg-zinc-800 rounded w-3/4 animate-pulse"></div>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3 px-3 py-2">
-            <div className="w-8 h-8 bg-zinc-800 rounded-full animate-pulse"></div>
-            <div className="flex-1 space-y-2">
-              <div className="h-3 bg-zinc-800 rounded animate-pulse"></div>
-              <div className="h-2 bg-zinc-800 rounded w-3/4 animate-pulse"></div>
-            </div>
-          </div>
-        )}
-        <Link
-          to="/settings"
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition ${
-            isActiveRoute("/settings")
-              ? "bg-zinc-800 text-white border-white"
-              : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
-          }`}
-        >
-          <SettingsIcon className="w-6 h-6" />
-          Settings
-        </Link>
-        <button
-          onClick={logoutHandler}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
-        >
-          <LogoutIcon className="w-6 h-6" />
-          Logout
-        </button>
-      </div>
-    </aside>
+          )}
+
+          <Link
+            to="/settings"
+            onClick={() => setIsOpen(false)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition ${
+              isActiveRoute("/settings")
+                ? "bg-zinc-800 text-white"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+            }`}
+          >
+            <SettingsIcon className="w-6 h-6" />
+            Settings
+          </Link>
+
+          <button
+            onClick={logoutHandler}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition border border-transparent hover:border-red-500/20"
+          >
+            <LogoutIcon className="w-6 h-6" />
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* OVERLAY */}
+      {isOpen && (
+        <div
+          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden z-40"
+        />
+      )}
+    </>
   );
 }
 
-// Icon components
+/* ICONS */
 function DashboardIcon({ className }) {
   return (
     <svg
