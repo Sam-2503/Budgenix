@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { Request, Response } from "express";
-import Expense from "../models/expenses.models";
+import Expense from "../models/expenses.models.js";
 const ai = new GoogleGenAI({});
 
 const buildPrompt = (userInput: string) => `

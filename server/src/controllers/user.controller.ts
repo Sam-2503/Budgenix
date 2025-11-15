@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import User, { IUser } from "../models/user.model";
+import User, { IUser } from "../models/user.model.js";
 import "dotenv/config";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
