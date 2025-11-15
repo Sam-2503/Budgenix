@@ -378,29 +378,6 @@ export default function FeaturesPage() {
           </section>
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full border-t border-zinc-800">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 py-8 sm:px-6 lg:px-8 md:flex-row">
-          <p className="text-sm text-zinc-400">
-            © 2024 Finance. All rights reserved.
-          </p>
-          <div className="flex items-center gap-6">
-            <a
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-              href="#"
-            >
-              Privacy Policy
-            </a>
-            <a
-              className="text-sm text-zinc-400 hover:text-white transition-colors"
-              href="#"
-            >
-              Terms of Service
-            </a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
